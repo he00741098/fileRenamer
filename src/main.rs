@@ -49,6 +49,7 @@ fn t(max:usize, src: &str) {
 }
 
 fn main() {
+    println!("\nPlease note that this might take a while. Please wait until the command finishes");
     let p = input!("Enter directory path: ");
 
 
