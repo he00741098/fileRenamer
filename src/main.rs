@@ -15,35 +15,24 @@ fn change_file_name(path: impl AsRef<Path>, name: &str) -> PathBuf {
 fn t(max:usize, src: &str) {
     let paths = fs::read_dir(&src).unwrap();
     let mut new_paths = vec![];
-    for path in paths{
+    paths.par_iter().for_each(|path|{
         let i = path.unwrap().path();
         let relative = i.strip_prefix(src).unwrap();
-        let mut newname = "".to_owned();
-        if relative.to_string_lossy().len()<max{
-            //add max - min 0's
-            for _i in 0..max-relative.to_string_lossy().len(){
-                let temp=("0".to_owned()+ &*newname);
-                newname = (*temp).parse().unwrap();
-            }
-
-        }
-        newname = newname + &*relative.to_string_lossy();
-        //println!("{}",&newname);
-        //println!("{}",&newname.as_str());
+        let mut newname = repeat("0").take(max - relative.to_string_lossy().len()).collect::<String>()+ &*relative.to_string_lossy();
         let new_path = change_file_name(i, newname.as_str());
         println!("New path: {}", &new_path.display());
         assert_eq!(new_path, Path::new(src).join(newname));
         new_paths.push(new_path);
-    }
+    });
 
     let paths = fs::read_dir(&src).unwrap();
-    for paths in paths.zip(new_paths.iter()){
+    paths.zip(new_paths.iter()).par_iter().for_each(|old, new|{
         let (old, new) = paths;
 
         // println!("Old: {}, New: {}", &old.unwrap().path().display(), &new.display());
         fs::rename(&old.unwrap().path(), &new).unwrap();
 
-    }
+    });
 
 
 }
@@ -68,11 +57,16 @@ fn main() {
             min_len = relative.to_string_lossy().len();
         }
     }
+
+
     // println!("Max len: {}", max_len);
     // println!("Min len: {}", min_len);
+
     t(max_len, src);
 
-let new_paths = fs::read_dir(&p).unwrap();
+
+
+    let new_paths = fs::read_dir(&p).unwrap();
     for path in new_paths {
         println!("Name: {}", &path.unwrap().path().display());
     }
