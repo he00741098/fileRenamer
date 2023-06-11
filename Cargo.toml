@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 catch-input = "1.1.2"
+rayon = "1.7.0"
+tokio = "1.28.2"
