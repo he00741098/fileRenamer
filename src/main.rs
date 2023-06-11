@@ -1,7 +1,8 @@
-use std::cmp::min;
 use std::fs;
 use std::path::{Path, PathBuf};
 use catch_input::input;
+use rayon::iter::repeat;
+use rayon::prelude::{ParallelBridge, IntoParallelIterator, ParallelIterator};
 fn change_file_name(path: impl AsRef<Path>, name: &str) -> PathBuf {
     let path = path.as_ref();
     let mut result = path.to_owned();
@@ -14,20 +15,18 @@ fn change_file_name(path: impl AsRef<Path>, name: &str) -> PathBuf {
 
 fn t(max:usize, src: &str) {
     let paths = fs::read_dir(&src).unwrap();
-    let mut new_paths = vec![];
-    paths.par_iter().for_each(|path|{
+    let new_paths:Vec<PathBuf> = paths.par_bridge().into_par_iter().map(|path|{
         let i = path.unwrap().path();
         let relative = i.strip_prefix(src).unwrap();
-        let mut newname = repeat("0").take(max - relative.to_string_lossy().len()).collect::<String>()+ &*relative.to_string_lossy();
+        let newname = repeat("0").take(max - relative.to_string_lossy().len()).collect::<String>()+ &*relative.to_string_lossy();
         let new_path = change_file_name(i, newname.as_str());
         println!("New path: {}", &new_path.display());
         assert_eq!(new_path, Path::new(src).join(newname));
-        new_paths.push(new_path);
-    });
+        new_path
+    }).collect();
 
     let paths = fs::read_dir(&src).unwrap();
-    paths.zip(new_paths.iter()).par_iter().for_each(|old, new|{
-        let (old, new) = paths;
+    paths.zip(new_paths.iter()).par_bridge().into_par_iter().for_each(|(old, new)|{
 
         // println!("Old: {}, New: {}", &old.unwrap().path().display(), &new.display());
         fs::rename(&old.unwrap().path(), &new).unwrap();
@@ -38,7 +37,6 @@ fn t(max:usize, src: &str) {
 }
 
 fn main() {
-    println!("\nPlease note that this might take a while. Please wait until the command finishes");
     let p = input!("Enter directory path: ");
 
 
