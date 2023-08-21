@@ -9,7 +9,3 @@ In order to have file sorted correctly you can add leading 0's to the file names
 
 This program takes in the path to the directory and adds 0's to every file in the directory. (don't include quotes in the input)
 
-Todo:
-- optimizations could probably be done
-- better error handling
-- more file renaming tools
